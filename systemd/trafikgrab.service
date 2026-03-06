@@ -1,0 +1,15 @@
+[Unit]
+Description=trafikgrab polling daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/trafikgrab
+ExecStart=/opt/trafikgrab/.venv/bin/python -m daemon.main --config /etc/trafikgrab/config.toml
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,53 @@
+[project]
+name = "trafikgrab"
+version = "0.0.1"
+description = "A tool for the analysis of public transport."
+authors = [
+    {name = "ciacon"}
+]
+license = {text = "GPLv2"}
+readme = "README.md"
+requires-python = ">=3.14,<4.0"
+dependencies = [
+    "apscheduler (>=3.10.4,<4.0.0)",
+    "pendulum (>=3.2.0,<4.0.0)",
+    "httpx (>=0.28.1,<0.29.0)",
+    "loguru (>=0.7.3,<0.8.0)",
+    "gtfs-realtime-bindings (>=2.0.0,<3.0.0)",
+    "sqlalchemy (>=2.0.39,<3.0.0)",
+    "python-dotenv (>=1.2.1,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project.scripts]
+trafikgrab-daemon = "daemon.main:main"
+
+[tool.poetry.group.dev.dependencies]
+ipython = "^9.10.0"
+ipdb = "^0.13.13"
+rich = "^14.3.2"
+mypy = "^1.18.2"
+
+[tool.mypy]
+python_version = "3.14"
+files = ["src"]
+check_untyped_defs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+warn_unreachable = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = [
+    "apscheduler.*",
+    "dotenv",
+    "google.transit",
+    "loguru",
+    "pendulum",
+]
+ignore_missing_imports = true

@@ -1,0 +1,27 @@
+[trafikgrab]
+base_url = "https://example.invalid/data.bin"
+output_path = "./data/download.bin"
+archive_root = "./data/archive"
+region = "stockholm"
+scheduler_timezone = "Europe/Stockholm"
+scheduler_db_path = "./data/scheduler.sqlite3"
+state_db_path = "./data/state.sqlite3"
+state_table = "app_state"
+user_agent = "trafikgrab/0.0.1"
+request_timeout_seconds = 20
+retry_count = 1
+retry_backoff_seconds = 1
+normal_interval_seconds = 30
+night_interval_seconds = 600
+peak_interval_seconds = 2
+peak_am_start = "07:00"
+peak_am_end = "09:00"
+peak_pm_start = "16:00"
+peak_pm_end = "18:00"
+monthly_limit = 50000
+api_cost_per_poll = 1
+breaker_failure_threshold = 5
+breaker_cooldown_seconds = 600
+breaker_probe_interval_seconds = 300
+poller_misfire_grace_seconds = 5
+lock_file = "./data/trafikgrab.lock"
