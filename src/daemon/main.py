@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 from loguru import logger
 
 from .config import load_config
+from .http_client import create_client
 from .logging import configure_logging
 from .runtime import Runtime, set_runtime
 from .scheduler import create_scheduler, install_jobs
@@ -55,26 +56,35 @@ async def run(config_path: Path | None = None) -> None:
 
     scheduler = create_scheduler(cfg)
     state = StateStore(cfg.state_db_path, cfg.state_table)
-    runtime = Runtime(config=cfg, scheduler=scheduler, state=state, output_dir=cfg.output_path.parent)
-    set_runtime(runtime)
-
-    install_jobs(scheduler, cfg)
-    scheduler.start()
-    logger.bind(event="daemon_started").info("daemon started")
-
-    stop_event = asyncio.Event()
-
-    def _stop() -> None:
-        stop_event.set()
-
-    loop = asyncio.get_running_loop()
-    loop.add_signal_handler(signal.SIGTERM, _stop)
-    loop.add_signal_handler(signal.SIGINT, _stop)
-
+    client = create_client(cfg)
     try:
+        runtime = Runtime(
+            config=cfg,
+            scheduler=scheduler,
+            state=state,
+            http_client=client,
+            output_dir=cfg.output_path.parent,
+        )
+        set_runtime(runtime)
+
+        install_jobs(scheduler, cfg)
+        scheduler.start()
+        logger.bind(event="daemon_started").info("daemon started")
+
+        stop_event = asyncio.Event()
+
+        def _stop() -> None:
+            stop_event.set()
+
+        loop = asyncio.get_running_loop()
+        loop.add_signal_handler(signal.SIGTERM, _stop)
+        loop.add_signal_handler(signal.SIGINT, _stop)
+
         await stop_event.wait()
     finally:
-        scheduler.shutdown(wait=False)
+        if scheduler.running:
+            scheduler.shutdown(wait=False)
+        await client.aclose()
         lock.release()
         logger.bind(event="daemon_stopped").info("daemon stopped")
 

@@ -20,29 +20,43 @@ class FetchResult:
     last_modified: str | None
 
 
-async def fetch(config: AppConfig, etag: str | None, last_modified: str | None) -> FetchResult:
+def create_client(config: AppConfig) -> httpx.AsyncClient:
+    """Build a long-lived async client shared by polling and health probes."""
+
+    timeout = httpx.Timeout(config.request_timeout_seconds)
+    return httpx.AsyncClient(
+        timeout=timeout,
+        follow_redirects=True,
+        headers={"User-Agent": config.user_agent},
+    )
+
+
+async def fetch(
+    client: httpx.AsyncClient,
+    config: AppConfig,
+    etag: str | None,
+    last_modified: str | None,
+) -> FetchResult:
     """Fetch remote artifact with conditional request headers and retries."""
 
-    headers = {"User-Agent": config.user_agent}
+    headers: dict[str, str] = {}
     if etag:
         headers["If-None-Match"] = etag
     if last_modified:
         headers["If-Modified-Since"] = last_modified
 
-    timeout = httpx.Timeout(config.request_timeout_seconds)
     last_exc: Exception | None = None
 
     for attempt in range(config.retry_count + 1):
         try:
-            async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
-                resp = await client.get(config.base_url, headers=headers)
-                body = resp.content if resp.status_code == 200 else None
-                return FetchResult(
-                    status=resp.status_code,
-                    body=body,
-                    etag=resp.headers.get("ETag"),
-                    last_modified=resp.headers.get("Last-Modified"),
-                )
+            resp = await client.get(config.base_url, headers=headers)
+            body = resp.content if resp.status_code == 200 else None
+            return FetchResult(
+                status=resp.status_code,
+                body=body,
+                etag=resp.headers.get("ETag"),
+                last_modified=resp.headers.get("Last-Modified"),
+            )
         except (httpx.HTTPError, asyncio.TimeoutError) as exc:
             last_exc = exc
             if attempt < config.retry_count:
@@ -53,13 +67,11 @@ async def fetch(config: AppConfig, etag: str | None, last_modified: str | None) 
     raise last_exc
 
 
-async def probe_health(config: AppConfig) -> bool:
+async def probe_health(client: httpx.AsyncClient, config: AppConfig) -> bool:
     """Cheap health probe used by breaker recovery job."""
 
-    timeout = httpx.Timeout(config.request_timeout_seconds)
     try:
-        async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
-            resp = await client.get(config.base_url, headers={"User-Agent": config.user_agent})
-            return resp.status_code < 500
+        resp = await client.get(config.base_url)
+        return resp.status_code < 500
     except (httpx.HTTPError, asyncio.TimeoutError):
         return False

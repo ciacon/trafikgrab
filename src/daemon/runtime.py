@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import httpx
 
 from .config import AppConfig
 from .state import StateStore
@@ -23,6 +24,7 @@ class Runtime:
     config: AppConfig
     scheduler: AsyncIOScheduler
     state: StateStore
+    http_client: httpx.AsyncClient
     output_dir: Path
 
 

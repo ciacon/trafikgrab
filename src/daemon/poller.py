@@ -51,7 +51,12 @@ async def run_poller_job() -> None:
             return
 
         try:
-            result = await http_client.fetch(cfg, state.etag, state.last_modified)
+            result = await http_client.fetch(
+                runtime.http_client,
+                cfg,
+                state.etag,
+                state.last_modified,
+            )
             state.last_http_status = result.status
 
             if result.status == 200 and result.body is not None:
@@ -143,7 +148,7 @@ async def run_recovery_job() -> None:
     if until and until > pendulum.now("UTC"):
         return
 
-    healthy = await http_client.probe_health(cfg)
+    healthy = await http_client.probe_health(runtime.http_client, cfg)
     if healthy:
         state.breaker_open_until_utc = None
         state.consecutive_failures = 0
