@@ -14,7 +14,10 @@ from .state import DaemonState
 def parse_utc(value: str) -> pendulum.DateTime:
     """Parse persisted ISO timestamp and normalize to UTC."""
 
-    return pendulum.parse(value).in_timezone("UTC")
+    parsed = pendulum.parse(value)
+    if not isinstance(parsed, pendulum.DateTime):
+        raise ValueError("expected datetime value")
+    return parsed.in_timezone("UTC")
 
 
 def is_open(state: DaemonState) -> bool:

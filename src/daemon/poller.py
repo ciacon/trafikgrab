@@ -141,11 +141,11 @@ async def run_recovery_job() -> None:
         cooldown_seconds=cfg.breaker_cooldown_seconds,
     )
 
-    if not breaker.is_open(state):
+    if not state.breaker_open_until_utc:
         return
 
-    until = pendulum.parse(state.breaker_open_until_utc).in_timezone("UTC") if state.breaker_open_until_utc else None
-    if until and until > pendulum.now("UTC"):
+    until = breaker.parse_utc(state.breaker_open_until_utc)
+    if until > pendulum.now("UTC"):
         return
 
     healthy = await http_client.probe_health(runtime.http_client, cfg)
