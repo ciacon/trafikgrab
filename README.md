@@ -22,7 +22,7 @@ The scheduler model is intentionally strict:
 
 ## Requirements
 
-- Python `>=3.14,<4.0`
+- Python `>=3.11,<4.0`
 - Poetry
 
 ## Installation
