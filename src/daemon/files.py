@@ -11,6 +11,7 @@ from typing import Any
 
 import pendulum
 
+
 def atomic_write_bytes(path: Path, data: bytes) -> str:
     """Write bytes atomically and return SHA-256 digest.
 

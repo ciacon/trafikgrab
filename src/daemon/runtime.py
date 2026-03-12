@@ -10,8 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import httpx
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from .config import AppConfig
 from .state import StateStore

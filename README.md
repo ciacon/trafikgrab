@@ -146,7 +146,22 @@ Business state is stored in SQLite and includes:
 
 ## Development
 
-Type-check:
+Run all required local checks:
+
+```bash
+tox -e check
+```
+
+Run checks individually:
+
+```bash
+tox -e lint
+tox -e type
+tox -e tests
+tox -e py314
+```
+
+Direct type-check:
 
 ```bash
 poetry run mypy src
